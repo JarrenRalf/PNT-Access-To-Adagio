@@ -46,11 +46,24 @@ function isEveryValueBlank(values)
  */
 function exportData(data, sheet, row)
 {
-  var exportData = data.map(val => 
-    [val[0], val[1],  val[6],  val[7], val[11], val[13], val[15], val[18], val[12], val[14], val[16], val[18],
-     val[7], val[7], val[54], val[45], val[50], val[45], val[28], val[29], val[30], val[31], val[22], val[23], 
-     ...new Array(val.length - 24).fill('')]
-  )
+  if (data.length > 2000) // Assume the entire Access database is being uploaded. Trigger the comparison between Access and Adagio and keep only the new imports.
+  {
+    const csvData = Utilities.parseCsv(DriveApp.getFilesByName("inventory.csv").next().getBlob().getDataAsString());
+
+    var exportData = data.filter(arr1 => csvData.filter(arr2 => arr1[0].toString().toUpperCase() == arr2[1].split(" - ").pop().toString().toUpperCase()).length == 0).map(val => 
+      [val[0], val[1],  val[6],  val[7], val[11], val[13], val[15], val[18], val[12], val[14], val[16], val[18],
+       val[7], val[7], val[54], val[45], val[50], val[45], val[28], val[29], val[30], val[31], val[22], val[23], 
+      ...new Array(val.length - 24).fill('')]
+    )
+  }
+  else
+  {
+    var exportData = data.map(val => 
+      [val[0], val[1],  val[6],  val[7], val[11], val[13], val[15], val[18], val[12], val[14], val[16], val[18],
+       val[7], val[7], val[54], val[45], val[50], val[45], val[28], val[29], val[30], val[31], val[22], val[23], 
+      ...new Array(val.length - 24).fill('')]
+    )
+  }
 
   exportData[0][12] = 'Cost Unit of Measure';
   exportData[0][13] = 'Price Unit of Measure';
@@ -64,7 +77,7 @@ function exportData(data, sheet, row)
     exportData.shift();
     exportData.push(new Array(exportData[0].length).fill(''))
   }
-    
+
   sheet.getRange(row, 1, exportData.length, exportData[0].length).setNumberFormat('@').setValues(exportData)
   sheet.getDataRange().activate()
 }
