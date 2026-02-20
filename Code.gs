@@ -1,11 +1,14 @@
-function onEdit(e)
+function installedOnEdit(e)
 {
+  const spreadsheet = e.source;
+  spreadsheet.toast('Data Received. Preparing Adagio import data...', 'AccessToAdagio', -1)
+
   const range  = e.range;
   const values = range.getValues();
-  const sheet  = e.source.getActiveSheet();
+  const sheet  = spreadsheet.getActiveSheet();
 
   if (areValuesPasted(range, values)) // If the user has pasted values
-    exportData(values, sheet, range.rowStart)   
+    exportData(values, sheet, spreadsheet, range.rowStart)   
 }
 
 /**
@@ -39,12 +42,13 @@ function isEveryValueBlank(values)
 /**
  * This function handles a paste event and reformats the data for uploading into Adagio.
  * 
- * @param {Object[][]}  data : The pasted data
- * @param   {Sheet}    sheet : The upload sheet 
+ * @param {Object[][]}      data    : The pasted data
+ * @param   {Sheet}        sheet    : The upload sheet
+ * @param {Spreadsheet} spreadsheet : The active spreadsheet
  * @param   {Number}    row  : The row number that the data is being pasted into
  * @author Jarren Ralf
  */
-function exportData(data, sheet, row)
+function exportData(data, sheet, spreadsheet, row)
 {
   if (data.length > 2000) // Assume the entire Access database is being uploaded. Trigger the comparison between Access and Adagio and keep only the new imports.
   {
@@ -80,4 +84,5 @@ function exportData(data, sheet, row)
 
   sheet.getRange(row, 1, exportData.length, exportData[0].length).setNumberFormat('@').setValues(exportData)
   sheet.getDataRange().activate()
+  spreadsheet.toast('Complete.','AccessToAdagio')
 }
